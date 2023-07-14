@@ -51,7 +51,7 @@ def outflow_routing(Qobs_outflow,name,month_list,Qobs_outflow_2=None):
         Qobs_outflow_2 = ku_fe(Qobs_outflow_2,ku_time,fe_time,month_list)
         
         return Qobs_outflow+Qobs_outflow_2
-    elif name == '白盘珠、岭下-博罗':
+    elif name == '白盆珠、岭下-博罗':
         # 岭下-菠萝
         ku_time = 5
         fe_time = 15
@@ -128,7 +128,7 @@ def read_inputs(data_file):
             "evp": None,
             "tmp": None,
         },
-        "白盘珠、岭下-博罗": {
+        "白盆珠、岭下-博罗": {
             "evp": None,
             "tmp": None,
         },
@@ -150,7 +150,7 @@ def read_inputs(data_file):
     dd['新丰江集水区']['tmp'] = xfj - 273.15
     dd['白盆珠流域']['tmp'] = bpz - 273.15
     dd['河源-岭下']['tmp'] = hy_lx - 273.15
-    dd['白盘珠、岭下-博罗']['tmp'] = bpz_lx - 273.15
+    dd['白盆珠、岭下-博罗']['tmp'] = bpz_lx - 273.15
 
     return dd
 

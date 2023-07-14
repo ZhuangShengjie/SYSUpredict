@@ -9,7 +9,47 @@ import re
 from tensorflow.keras.models import load_model
 import json
 
+# 白盘珠、岭下-博罗 = bpzlx ; 白盆珠流域 = bpz ; 枫树坝流域 = fsb ; 新丰江集水区 = xfj ; 龙川上游 =  lcup ; 龙川下游 = lcdw 
+# 河源-岭下 = hylx 
+def get_name_fan(string_name):
+    if string_name == '白盆珠、岭下-博罗':
+        name = 'bpzlx'
+    elif string_name == '白盆珠流域':
+        name = 'bpz'
+    elif string_name =='枫树坝流域':
+        name = 'fsb'
+    elif string_name =='新丰江集水区':
+        name = 'xfj'
+    elif string_name == '龙川上游':
+        name = 'lcup'
+    elif string_name == '龙川下游':
+        name = 'lcdw'
+    else:
+        name = 'hylx'
+    return name
 
+def get_name(string_name):
+    if string_name == 'bpzlx':
+        name = '白盆珠、岭下-博罗'
+    elif string_name == 'bpz':
+        name = '白盆珠流域'
+    elif string_name =='fsb':
+        name = '枫树坝流域'
+    elif string_name =='xfj':
+        name = '新丰江集水区'
+    elif string_name == 'lcup':
+        name = '龙川上游'
+    elif string_name == 'lcdw':
+        name = '龙川下游'
+    elif string_name == 'fsbre':
+        name = '枫树坝水库'
+    elif string_name == 'xfjre':
+        name = '新丰江水库'
+    elif string_name == 'bpzre':
+        name = '白盆珠水库'
+    else:
+        name = '河源-岭下'
+    return name
 def fill_nan_with_nearest(arr):
     mask = np.isnan(arr)
     idx = np.where(~mask, np.arange(mask.shape[0]), 0)
@@ -27,12 +67,14 @@ def convert_numpy_arrays_to_lists(data):
     else:
         return data
 
+
+
 # 读取文件的路径
 # 函数库的路径
 # 数据库的路径
 # 驱动数据的路径
 # 输出的路径
-def run_TTMMPPHH():
+def run_TTMMPPHH(start_date):
     import os
     import sys
     import numpy as np
@@ -44,8 +86,11 @@ def run_TTMMPPHH():
     from tensorflow.keras.models import load_model
     import json
     path_now = os.getcwd()
-    path_forcing = path_now +'/data/database/forecast/monthly_ori/'
-    file_forcing = os.listdir(path_forcing)[0]
+    path_forcing = f'{path_now}/data/database/forecast/monthly_ori/'
+    file_forcing = os.listdir(path_forcing)
+    for name in file_forcing:
+        if name == start_date:
+            file_forcing = name
     path_forcing = path_forcing + file_forcing + '/flxf/'
     path_model = path_now +'/models/'
     path_model_parameter = path_now +'/models/parameter/hmflow/TMPH/'
@@ -67,6 +112,7 @@ def run_TTMMPPHH():
         substrings = npy_file.split('_')
         # 获取下划线之前的子字符串
         name = substrings[0]
+        name = get_name(name)
         par_values[name] = data
 
     # c = load_model('新丰江水库.h5')
@@ -87,6 +133,7 @@ def run_TTMMPPHH():
         substrings = inp_file.split('_')
         # 获取下划线之前的子字符串
         name = substrings[0]
+        name = get_name(name)
         ini_data[name] = {'S_km':{},'St_1':{}}
         ini_data[name]['S_km'] = data['S_km'][0]
         ini_data[name]['St_1'] = data['St_1'][0]
@@ -95,7 +142,6 @@ def run_TTMMPPHH():
     os.chdir(path_forcing)
     grb_list = glob.glob('flxf*grb2')
     grb_list = sorted(grb_list, key=get_time_value)
-    grb_list = grb_list[3:-1]
 
     P_E_dic = {
             "枫树坝流域": {
@@ -122,7 +168,7 @@ def run_TTMMPPHH():
                 "evp": None,
                 "pre": None,
             },
-            "白盘珠、岭下-博罗": {
+            "白盆珠、岭下-博罗": {
                 "evp": None,
                 "pre": None,
             }
@@ -163,7 +209,7 @@ def run_TTMMPPHH():
     P_E_dic['龙川上游']['pre'] = (fill_nan_with_nearest(np.array(pre['DLM']['FH'])))*10
     P_E_dic['龙川下游']['pre'] = (fill_nan_with_nearest(np.array(pre['DLM']['FH'])))*10
     P_E_dic['河源-岭下']['pre'] = (fill_nan_with_nearest(np.array(pre['DLM']['HL'])))*10
-    P_E_dic['白盘珠、岭下-博罗']['pre'] = (fill_nan_with_nearest(np.array(pre['DLM']['BLB'])))*10
+    P_E_dic['白盆珠、岭下-博罗']['pre'] = (fill_nan_with_nearest(np.array(pre['DLM']['BLB'])))*10
 
     # 月份序列
     month_list = []
@@ -178,10 +224,11 @@ def run_TTMMPPHH():
         for name_now in list(dd_tem.keys()):
             if name_now != 'month':
                 month = month_list[i]
-                T_month_file = name_now + '_历史月温度.inp'
-                T_xun_file = name_now + '_历史旬温度.inp'
-                E_month_ave_file = name_now + '_历史多年平均月蒸散发.txt'
-                T_month_ave_file = name_now + '_多年月平均温度.inp'
+                name_e = get_name_fan(name_now)
+                T_month_file = name_e + '_T_monthly.inp' # E_monthly=历史月温度
+                T_xun_file = name_e + '_T_tendays.inp' # E_tendays=历史旬温度
+                E_month_ave_file = name_e + '_E_ave_monthly.txt' # E_ave_monthly=历史多年平均月蒸散发
+                T_month_ave_file = name_e + '_T_ave_monthly.inp' # T_ave_monthly=历史多年平均月气温
                 T_month_his = pd.read_table(T_month_file,delimiter=' ',parse_dates=True,index_col=0,header=None)
                 T_month_his['month'] = T_month_his.index.month
                 T_xun_his = pd.read_table(T_xun_file,delimiter=' ',parse_dates=True,names=['year','month','xun','T'],header=None)
@@ -276,9 +323,19 @@ def run_TTMMPPHH():
     outflow_di['岭下站'] = {}
     outflow_di['岭下站']['streamflow'] = P_E_dic[name_huiliu]['streamflow']  + outflow_di['河源站']['streamflow']
 
-    name_huiliu = '白盘珠、岭下-博罗'
+    name_huiliu = '白盆珠、岭下-博罗'
     outflow_di['博罗站'] = {}
     outflow_di['博罗站']['streamflow'] = P_E_dic[name_huiliu]['streamflow']  + outflow_di['岭下站']['streamflow'] + outflow_di['白盆珠水库']['outflow']
+
+    # 三大区间来水
+    outflow_di['枫树坝-河源片区区间来水'] = {}
+    outflow_di['枫树坝-河源片区区间来水']['streamflow'] = P_E_dic['龙川下游']['streamflow'] +  P_E_dic['龙川上游']['streamflow']
+
+    outflow_di['河源-岭下片区区间来水'] = {}
+    outflow_di['河源-岭下片区区间来水']['streamflow'] = P_E_dic['河源-岭下']['streamflow']
+
+    outflow_di['白盆珠、岭下-博罗片区区间来水'] = {}
+    outflow_di['白盆珠、岭下-博罗片区区间来水']['streamflow'] = P_E_dic['白盆珠、岭下-博罗']['streamflow']
 
     # 将字典中的所有NumPy数组转换为列表
     converted_dict = convert_numpy_arrays_to_lists(outflow_di)
@@ -293,3 +350,4 @@ def run_TTMMPPHH():
     with open(file_path, "w") as f:
         f.write(json_str)
     print('TMPH输出完毕，结果保留在:',path_result+file_path)
+    os.chdir(path_now)

@@ -36,9 +36,9 @@ forcing = np.load('./data/forcing/%s_monthly_average_sf.npy' % start_date)
 nnflow(forcing, rainfall_out_m)
 
 import models.TMPH_run as TMPH
-TMPH.run_TTMMPPHH()
+TMPH.run_TTMMPPHH(start_date)
 import models.HBV_run as HBV
-HBV.run_HHBBVV()
+HBV.run_HHBBVV(start_date)
 
 
 

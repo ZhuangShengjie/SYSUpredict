@@ -4,6 +4,7 @@
 # File    : DownloadFunc.py
 import requests
 from tqdm import tqdm
+import time
 import os
 from . import DateListFunc as DLF
 
@@ -45,53 +46,92 @@ def ncep_cfs(date_dif, scale, date_l):
     """
     path_ori = os.getcwd()
     YY = '06'  # 起报时间
-    if scale == 'monthly' or scale == 'tendays':
-        scale = 'monthly'
-        # ########## 每日数据存储路径 #############
-        save_path = f'{path_ori}/data/database/forecast/{scale}_ori/{date_dif}'
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)  # eg:./database/forecast/monthly_ori/20230522/
-        for date_m in date_l:  # 下载文件日期长度
-            file = f"pgbf.01.{date_dif}{YY}.{date_m}.avrg.grib.grb2"
-            req_url1 = f"https://nomads.ncep.noaa.gov/pub/data/nccf/com/cfs/prod" \
-                       f"/cfs.{date_dif}/{YY}/{scale}_grib_01/{file}"  # 获取下载url
-            req_url2 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast" \
-                       f"/monthly-means/{date_dif[0:4]}/{date_dif[0:6]}/{date_dif}/{date_dif}06/" + file
-            # ############# 数据下载文件路径 ###################
-            path = f'{save_path}/{file}'
-            if not os.path.exists(path):
-                download_check(req_url1, req_url2, path)
-            print(f'存储date: {date_dif} >>> 预测日期: {date_m} >>> 尺度: {scale}')
-            print(f'finish {file} download')
-    elif scale == 'daily' or scale == '6hrly':
-        scale = '6hrly'
-        save_path = f'{path_ori}/data/database/forecast/{scale}_ori/{date_dif}'
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
+    date_dif_n = DLF.calculate_date(date_dif, -1)  # 起报时间差
+    save_path_m = f'{path_ori}/data/database/forecast/monthly_ori/{date_dif}'  # 文件保存路径
+    save_path_d = f'{path_ori}/data/database/forecast/6hrly_ori/{date_dif}'
+    if scale == 'monthly':
+    # 1、monthly download
+        if not os.path.exists(save_path_m):
+            os.makedirs(save_path_m)  # eg:./database/forecast/monthly_ori/20230522/
         for date_m in date_l:
-            file = f"pgbf{date_m}.01.{date_dif}{YY}.grb2"
+            # ############## 下载文件url获取 ###################
+            file = f"pgbf.01.{date_dif_n}{YY}.{date_m}.avrg.grib.grb2"
             req_url1 = f"https://nomads.ncep.noaa.gov/pub/data/nccf/com/cfs/prod" \
-                       f"/cfs.{date_dif}/{YY}/{scale}_grib_01/{file}"  # 获取下载url
+                       f"/cfs.{date_dif_n}/{YY}/monthly_grib_01/" + file  # 获取下载url
             req_url2 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast" \
-                       f"/6-hourly-by-pressure/{date_dif[0:4]}/{date_dif[0:6]}/{date_dif}/{date_dif}06/" + file
+                       f"/monthly-means/{date_dif_n[0:4]}/{date_dif_n[0:6]}/{date_dif_n}/{date_dif_n}06/" + file
+            # ############# 数据下载保存路径 ###################
+            path_m = f'{save_path_m}/{file}'
+            if not os.path.exists(path_m):
+                download_check(req_url1, req_url2, path_m)
+            print(f'存储date: {date_dif} >>> 预测日期: {date_m} >>> 尺度: monthly')
+            print(f'finish {file} download')
+    elif scale == 'daily':
+        # 2、daily download use 6hrly replace
+        if not os.path.exists(save_path_d):
+            os.makedirs(save_path_d)
+        for date_d in date_l:
+            # ############## 下载文件url获取 ###################
+            file = f"pgbf{date_d}.01.{date_dif_n}{YY}.grb2"
+            req_url1 = f"https://nomads.ncep.noaa.gov/pub/data/nccf/com/cfs/prod" \
+                       f"/cfs.{date_dif_n}/{YY}/6hrly_grib_01/" + file  # 获取下载url
+            req_url2 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast" \
+                       f"/6-hourly-by-pressure/{date_dif_n[0:4]}/{date_dif_n[0:6]}/{date_dif_n}/{date_dif_n}06/" + file
             # ############# 数据下载文件路径 ###################
-            path = f'{save_path}/{file}'
-            if not os.path.exists(path):
-                download_check(req_url1, req_url2, path)
-            print(f'存储date: {date_dif} >>> 预测日期: {date_m} >>> 尺度: {scale}')
+            path_d = f'{save_path_d}/{file}'
+            if not os.path.exists(path_d):
+                download_check(req_url1, req_url2, path_d)
+            print(f'存储date: {date_dif} >>> 预测日期: {date_d} >>> 尺度: daily')
+            print(f'finish {file} download')
+    else:
+        assert False, 'no such scale'
+
+
+def ncep_cfs_flx(date_dif, scale, date_l):
+    path_ori = os.getcwd()
+    YY = '06'  # 起报时间
+    date_dif_n = DLF.calculate_date(date_dif, -1)  # 起报时间差
+    save_path_m = f'{path_ori}/data/database/forecast/monthly_ori/{date_dif}/flxf/'  # 文件保存路径
+    save_path_d = f'{path_ori}/data/database/forecast/6hrly_ori/{date_dif}/flxf/'
+    if scale == 'monthly':
+        # 1、monthly download
+        if not os.path.exists(save_path_m):
+            os.makedirs(save_path_m)  # eg:./database/forecast/monthly_ori/20230522/
+        for date_m in date_l:
+            # ############## 下载文件url获取 ###################
+            file = f"flxf.01.{date_dif_n}{YY}.{date_m}.avrg.grib.grb2"
+            req_url1 = f"https://nomads.ncep.noaa.gov/pub/data/nccf/com/cfs/prod" \
+                       f"/cfs.{date_dif_n}/{YY}/monthly_grib_01/" + file  # 获取下载url
+            req_url2 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast" \
+                       f"/monthly-means/{date_dif_n[0:4]}/{date_dif_n[0:6]}/{date_dif_n}/{date_dif_n}06/" + file
+            # ############# 数据下载保存路径 ###################
+            path_m = f'{save_path_m}/{file}'
+            if not os.path.exists(path_m):
+                download_check(req_url1, req_url2, path_m)
+            print(f'存储date: {date_dif} >>> 预测日期: {date_m} >>> 尺度: monthly >>> 变量: flxf')
+            print(f'finish {file} download')
+    elif scale == 'daily':
+        # 2、daily download use 6hrly replace
+        if not os.path.exists(save_path_d):
+            os.makedirs(save_path_d)
+        for date_d in date_l:
+            # ############## 下载文件url获取 ###################
+            file = f"flxf{date_d}.01.{date_dif_n}{YY}.grb2"
+            req_url1 = f"https://nomads.ncep.noaa.gov/pub/data/nccf/com/cfs/prod" \
+                       f"/cfs.{date_dif_n}/{YY}/6hrly_grib_01/" + file  # 获取下载url
+            req_url2 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast" \
+                       f"/6-hourly-flux/{date_dif_n[0:4]}/{date_dif_n[0:6]}/{date_dif_n}/{date_dif_n}06/" + file
+            # ############# 数据下载文件路径 ###################
+            path_d = f'{save_path_d}/{file}'
+            if not os.path.exists(path_d):
+                download_check(req_url1, req_url2, path_d)
+            print(f'存储date: {date_dif} >>> 预测日期: {date_d} >>> 尺度: daily >>> 变量: flxf')
             print(f'finish {file} download')
     else:
         assert False, 'no such scale'
 
 
 def date_predict_need(date_dif, scale, date_l):
-    """
-    :param date: 数据下载访问ncep的日期文件夹
-    :param start_date: 开始日期
-    :param scale: 尺度
-    :param path_ori: 数据库存储相对路径
-    须优化函数
-    """
     path_ori = os.getcwd()
     YY = '06'
     if scale == 'monthly' or scale == 'tendays':
@@ -100,7 +140,6 @@ def date_predict_need(date_dif, scale, date_l):
         save_path = f'{path_ori}/data/database/forecast/{scale}_ori/{date_dif}'
         if not os.path.exists(save_path):
             os.makedirs(save_path)  # eg:./database/forecast/monthly_ori/20230522/
-
         for date_m in date_l:
             file = f"pgbf.01.{date_m}{YY}.{date_m[:-2]}.avrg.grib.grb2"
             req_url1 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast/" \
@@ -128,125 +167,14 @@ def date_predict_need(date_dif, scale, date_l):
                        f"cfs.{date_m[0:8]}/{YY}/6hrly_grib_01/{file}"  # 获取下载url
             req_url2 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast/" \
                       f"6-hourly-by-pressure/{date_m[0:4]}/{date_m[0:6]}/{date_m[0:8]}/{date_m}/" + file
-            path = f'{save_path}/{file}'  # ############# 数据下载文件路径 ###################
-            if not os.path.exists(path):
-                download_check(req_url1, req_url2, path)
-            print(f'存储date: {date_dif} >>> 日期: {date_m} >>> 尺度: {scale} >>> extra')
-            print(f'finish {file} download')
-    else:
-        assert False, 'no such scale'
-
-def ncep_cfs_flx(date_dif, scale, date_l):
-    """
-    param date_dif: 数据下载访问ncep的日期文件夹
-    param scale: 尺度  可能设置3个尺度
-    param date_l: 下载文件日期长度
-    param path_ori: 数据库存储相对路径
-    """
-    path_ori = os.getcwd()
-    YY = '06'  # 起报时间
-    if scale == 'monthly' or scale == 'tendays':
-        scale = 'monthly'
-        # ########## 每日数据存储路径 #############
-        save_path = f'{path_ori}/data/database/forecast/{scale}_ori/{date_dif}/flxf/'
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)  # eg:./database/forecast/monthly_ori/20230522/
-        for date_m in date_l:  # 下载文件日期长度
-            file = f"flxf.01.{date_dif}{YY}.{date_m}.avrg.grib.grb2"
-            req_url1 = f"https://nomads.ncep.noaa.gov/pub/data/nccf/com/cfs/prod" \
-                       f"/cfs.{date_dif}/{YY}/{scale}_grib_01/{file}"  # 获取下载url
-            req_url2 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast" \
-                       f"/monthly-means/{date_dif[0:4]}/{date_dif[0:6]}/{date_dif}/{date_dif}06/" + file
             # ############# 数据下载文件路径 ###################
             path = f'{save_path}/{file}'
             if not os.path.exists(path):
                 download_check(req_url1, req_url2, path)
-            print(f'存储date: {date_dif} >>> 预测日期: {date_m} >>> 尺度: {scale}')
-            print(f'finish {file} download')
-    elif scale == 'daily' or scale == '6hrly':
-        scale = '6hrly'
-        save_path = f'{path_ori}/data/database/forecast/{scale}_ori/{date_dif}/flxf/'
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-        for date_m in date_l:
-            file = f"flxf{date_m}.01.{date_dif}{YY}.grb2"
-            req_url1 = f"https://nomads.ncep.noaa.gov/pub/data/nccf/com/cfs/prod" \
-                       f"/cfs.{date_dif}/{YY}/{scale}_grib_01/{file}"  # 获取下载url
-            req_url2 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast" \
-                       f"/6-hourly-by-pressure/{date_dif[0:4]}/{date_dif[0:6]}/{date_dif}/{date_dif}06/" + file
-            # ############# 数据下载文件路径 ###################
-            path = f'{save_path}/{file}'
-            if not os.path.exists(path):
-                download_check(req_url1, req_url2, path)
-            print(f'存储date: {date_dif} >>> 预测日期: {date_m} >>> 尺度: {scale}')
-            print(f'finish {file} download')
-    else:
-        assert False, 'no such scale'
-
-
-def date_predict_need_flx(date_dif, scale, date_l):
-    """
-    :param date: 数据下载访问ncep的日期文件夹
-    :param start_date: 开始日期
-    :param scale: 尺度
-    :param path_ori: 数据库存储相对路径
-    须优化函数
-    """
-    path_ori = os.getcwd()
-    YY = '06'
-    if scale == 'monthly' or scale == 'tendays':
-        scale = 'monthly'
-        # ########## 每日数据存储路径 #############
-        save_path = f'{path_ori}/data/database/forecast/{scale}_ori/{date_dif}/flxf/'
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)  # eg:./database/forecast/monthly_ori/20230522/
-
-        for date_m in date_l:
-            file = f"flxf.01.{date_m}{YY}.{date_m[:-2]}.avrg.grib.grb2"
-            req_url1 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast/" \
-                       f"monthly-means/{date_m[0:4]}/{date_m[0:6]}/{date_m}/{date_m}06/" + file
-            date_new = DLF.calculate_date(date_m, 1)
-            file_new = f"flxf.01.{date_new }{YY}.{date_new [:-2]}.avrg.grib.grb2"
-            req_url2 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast/" \
-                       f"monthly-means/{date_new[0:4]}/{date_new[0:6]}/{date_new}/{date_new}06/" + file_new
-            # ############# 数据下载文件路径 ###################
-            path = f'{save_path}/{file}'  # 可能需要修改，日期最好对上
-            if not os.path.exists(path):
-                download_check(req_url1, req_url2, path)
-            print(f'存储date: {date_dif} >>> 日期: {date_m} >>> 尺度: {scale} >>> extra')
-            print(f'finish {file} download')
-
-    elif scale == 'daily' or scale == '6hrly':
-        scale = '6hrly'
-        save_path = f'{path_ori}/data/database/forecast/{scale}_ori/{date_dif}/flxf/'
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-
-        for date_m in date_l:
-            file = f"flxf{date_m}.01.{date_m[:-2]}{YY}.grb2"
-            req_url1 = f"https://nomads.ncep.noaa.gov/pub/data/nccf/com/cfs/prod/" \
-                       f"cfs.{date_m[0:8]}/{YY}/6hrly_grib_01/{file}"  # 获取下载url
-            req_url2 = f"https://www.ncei.noaa.gov/data/climate-forecast-system/access/operational-9-month-forecast/" \
-                       f"6-hourly-flux/{date_m[0:4]}/{date_m[0:6]}/{date_m[0:8]}/{date_m}/" + file
-            path = f'{save_path}/{file}'  # ############# 数据下载文件路径 ###################
-            if not os.path.exists(path):
-                download_check(req_url1, req_url2, path)
             print(f'存储date: {date_dif} >>> 日期: {date_m} >>> 尺度: {scale} >>> extra')
             print(f'finish {file} download')
     else:
         assert False, 'no such scale'
-
-
-def download_ncep(scale, start_date, end_date, ):
-    # 分scale下载
-    date_l, _ = DLF.date_list(scale, start_date, end_date)
-    date_i = DLF.date_dif_today(start_date)
-    greater_list, smaller_list = DLF.date_list_div(scale, start_date, end_date)
-    ncep_cfs(date_i, scale, greater_list)
-    date_predict_need(date_i, scale, smaller_list)
-    # temp
-    ncep_cfs_flx(date_i, scale, greater_list)
-    date_predict_need_flx(date_i, scale, smaller_list)
 
 
 def download_ncep_all(start_date, end_date, ):
@@ -255,9 +183,9 @@ def download_ncep_all(start_date, end_date, ):
     date_i = DLF.date_dif_today(start_date)
     greater_list_m, smaller_list_m = DLF.date_list_div('monthly', start_date, end_date)
     ncep_cfs(date_i, 'monthly', greater_list_m)
-    date_predict_need(date_i, 'monthly', smaller_list_m)
     ncep_cfs_flx(date_i, 'monthly', greater_list_m)
-    date_predict_need_flx(date_i, 'monthly', smaller_list_m)
+    date_predict_need(date_i, 'monthly', smaller_list_m)
+
     print('start <<< daily')
     date_l_d, _ = DLF.date_list('daily', start_date, end_date)
     date_i = DLF.date_dif_today(start_date)
@@ -265,7 +193,7 @@ def download_ncep_all(start_date, end_date, ):
     ncep_cfs(date_i, 'daily', greater_list_d)
     date_predict_need(date_i, 'daily', smaller_list_d)
     ncep_cfs_flx(date_i, 'daily', greater_list_d)
-    date_predict_need_flx(date_i, 'daily', smaller_list_d)
+    print('finish all download')
 
 
 if __name__ == '__main__':

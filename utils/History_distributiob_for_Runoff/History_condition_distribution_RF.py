@@ -53,23 +53,23 @@ def Month_Vars_distribution(Month_Pre_input,Month_Prs_input,Month_Temp_input,Mon
     if Month_Pre_input < 0 or Month_Prs_input < 0 or Month_Temp_input < 0 or Month_RHU_input < 0:
         print("输入数据为负")
         
-    elif Month_Pre_input > float(His_Pre_rate_range[1]) * 10 and Month_Pre_input != 9999: # 检验输入数值是不是超越设定的最大阈值 
-        print("输入的降水数据超越历史阈值")
+    #elif Month_Pre_input > float(His_Pre_rate_range[1]) * 10 and Month_Pre_input != 9999: # 检验输入数值是不是超越设定的最大阈值
+        #print("输入的降水数据超越历史阈值")
 
-    elif (Month_Prs_input != 9999 and Month_Prs_input < float(His_Prs_range[0]) * 0.8) or (Month_Prs_input != 9999 and Month_Prs_input > float(His_Prs_range[1]) * 1.2):
-        print("输入的压强数据超越历史阈值")
+    #elif (Month_Prs_input != 9999 and Month_Prs_input < float(His_Prs_range[0]) * 0.8) or (Month_Prs_input != 9999 and Month_Prs_input > float(His_Prs_range[1]) * 1.2):
+        #print("输入的压强数据超越历史阈值")
 
-    elif (Month_Temp_input != 9999 and Month_Temp_input < float(His_Temp_range[0]) * 0.8) or (Month_Temp_input != 9999 and Month_Temp_input > float(His_Temp_range[1]) * 1.2):
-        print("输入的气温数据超越历史阈值")
+    #elif (Month_Temp_input != 9999 and Month_Temp_input < float(His_Temp_range[0]) * 0.8) or (Month_Temp_input != 9999 and Month_Temp_input > float(His_Temp_range[1]) * 1.2):
+        #print("输入的气温数据超越历史阈值")
 
-    elif (Month_Win_input != 9999 and Month_Win_input < float(His_Win_range[0]) * 0.8) or (Month_Win_input != 9999 and Month_Win_input > float(His_Win_range[1]) * 1.2):
-        print("输入的风速数据超越历史阈值")
+    #elif (Month_Win_input != 9999 and Month_Win_input < float(His_Win_range[0]) * 0.8) or (Month_Win_input != 9999 and Month_Win_input > float(His_Win_range[1]) * 1.2):
+        #print("输入的风速数据超越历史阈值")
 
-    elif (Month_RHU_input != 9999 and Month_RHU_input < float(His_RHU_range[0]) * 0.8) or (Month_RHU_input != 9999 and Month_RHU_input > float(His_RHU_range[1]) * 1.2):
-        print("输入的相对湿度数据超越历史阈值")
+    #elif (Month_RHU_input != 9999 and Month_RHU_input < float(His_RHU_range[0]) * 0.8) or (Month_RHU_input != 9999 and Month_RHU_input > float(His_RHU_range[1]) * 1.2):
+        #print("输入的相对湿度数据超越历史阈值")
 
-    elif (Month_RF_input != 9999 and Month_RF_input < float(His_Runoff_range[0]) * 0) or (Month_RF_input != 9999 and Month_RF_input > float(His_Runoff_range[1]) * 100):
-        print("输入的径流数据超越历史阈值")
+    #elif (Month_RF_input != 9999 and Month_RF_input < float(His_Runoff_range[0]) * 0) or (Month_RF_input != 9999 and Month_RF_input > float(His_Runoff_range[1]) * 100):
+        #print("输入的径流数据超越历史阈值")
 
     # 根据输入的月尺度数据，判断哪个变量存在，便将历史数据的这种变量对应的月尺度和旬尺度数据提取出来
     else:

@@ -9,6 +9,46 @@ import pandas as pd
 import json
 import sys
 # grib
+def get_name_fan(string_name):
+    if string_name == '白盆珠、岭下-博罗':
+        name = 'bpzlx'
+    elif string_name == '白盆珠流域':
+        name = 'bpz'
+    elif string_name =='枫树坝流域':
+        name = 'fsb'
+    elif string_name =='新丰江集水区':
+        name = 'xfj'
+    elif string_name == '龙川上游':
+        name = 'lcup'
+    elif string_name == '龙川下游':
+        name = 'lcdw'
+    else:
+        name = 'hylx'
+    return name
+# 白盘珠、岭下-博罗 = bpzlx ; 白盆珠流域 = bpz ; 枫树坝流域 = fsb ; 新丰江集水区 = xfj ; 龙川上游 =  lcup ; 龙川下游 = lcdw 
+# 河源-岭下 = hylx 
+def get_name(string_name):
+    if string_name == 'bpzlx':
+        name = '白盆珠、岭下-博罗'
+    elif string_name == 'bpz':
+        name = '白盆珠流域'
+    elif string_name =='fsb':
+        name = '枫树坝流域'
+    elif string_name =='xfj':
+        name = '新丰江集水区'
+    elif string_name == 'lcup':
+        name = '龙川上游'
+    elif string_name == 'lcdw':
+        name = '龙川下游'
+    elif string_name == 'fsbre':
+        name = '枫树坝水库'
+    elif string_name == 'xfjre':
+        name = '新丰江水库'
+    elif string_name == 'bpzre':
+        name = '白盆珠水库'
+    else:
+        name = '河源-岭下'
+    return name
 def get_time_value(string):
     return string.split(".")[3]
 
@@ -26,7 +66,7 @@ def convert_numpy_arrays_to_lists(data):
     else:
         return data
 
-def run_HHBBVV():
+def run_HHBBVV(start_date):
     import os
     import sys
     import numpy as np
@@ -44,7 +84,10 @@ def run_HHBBVV():
     # 输出的路径
     path_now = os.getcwd()
     path_forcing = path_now +'/data/database/forecast/6hrly_ori/'
-    file_forcing = os.listdir(path_forcing)[0]
+    file_forcing = os.listdir(path_forcing)
+    for name in file_forcing:
+        if name == start_date:
+            file_forcing = name
     path_forcing = path_forcing + file_forcing + '/flxf/'
     path_model = path_now +'/models/'
     path_model_parameter = path_now +'/models/parameter/hmflow/HBV/'
@@ -67,6 +110,7 @@ def run_HHBBVV():
         substrings = npy_file.split('_')
         # 获取下划线之前的子字符串
         name = substrings[0]
+        name = get_name(name)
         par_values[name] = data
     # 先不用
     # par_values['新丰江水库'] = load_model('新丰江水库.h5')
@@ -87,13 +131,13 @@ def run_HHBBVV():
         substrings = inp_file.split('_')
         # 获取下划线之前的子字符串
         name = substrings[0]
+        name = get_name(name)
         ini_data[name] = data.loc[:,1]
 
     # 读取文件夹里面的grb
     os.chdir(path_forcing)
     grb_list = glob.glob('flxf*grb2')
     grb_list = sorted(grb_list, key=get_time_value)
-    grb_list = grb_list[3:-1]
 
     P_E_dic = {
             "枫树坝流域": {
@@ -120,7 +164,7 @@ def run_HHBBVV():
                 "evp": None,
                 "pre": None,
             },
-            "白盘珠、岭下-博罗": {
+            "白盆珠、岭下-博罗": {
                 "evp": None,
                 "pre": None,
             }
@@ -143,7 +187,7 @@ def run_HHBBVV():
     json_file_path = path_result
     os.chdir(json_file_path)
     json_file = os.listdir(json_file_path)
-    json_file_path = [s for s in json_file if "rainfall_daily_" in s]
+    json_file_path = [s for s in json_file if "rainfall_daily_average" in s]
     json_file_path = json_file_path[0]
 
     # 读取JSON文件
@@ -159,7 +203,7 @@ def run_HHBBVV():
     P_E_dic['龙川上游']['pre'] = fill_nan_with_nearest(np.array(pre['DLM']['FH']))
     P_E_dic['龙川下游']['pre'] = fill_nan_with_nearest(np.array(pre['DLM']['FH']))
     P_E_dic['河源-岭下']['pre'] = fill_nan_with_nearest(np.array(pre['DLM']['HL']))
-    P_E_dic['白盘珠、岭下-博罗']['pre'] = fill_nan_with_nearest(np.array(pre['DLM']['BLB']))
+    P_E_dic['白盆珠、岭下-博罗']['pre'] = fill_nan_with_nearest(np.array(pre['DLM']['BLB']))
 
     # 循环输入每个grb
     for grb in grb_list:
@@ -170,8 +214,9 @@ def run_HHBBVV():
         os.chdir(path_constant) # 数据库位置
         for name_now in list(dd_tem.keys()):
             if name_now != 'month':
-                E_month_ave_file = name_now + '_历史多年平均月蒸散发.txt'
-                T_month_ave_file = name_now + '_多年月平均温度.inp'
+                name_e = get_name_fan(name_now)
+                E_month_ave_file = name_e + '_E_ave_monthly.txt' # E_ave_monthly=历史多年平均月蒸散发
+                T_month_ave_file = name_e + '_T_ave_monthly.inp' # T_ave_monthly=历史多年平均月气温
                 E_month_ave = pd.read_table(E_month_ave_file,delimiter=' ',parse_dates=True,names=['month','E'],header=None)
                 T_month_ave = pd.read_table(T_month_ave_file,delimiter=' ',parse_dates=True,names=['month','E'],header=None)# ETF率定
                 E_month_ave['E'] = E_month_ave['E']/30
@@ -254,9 +299,19 @@ def run_HHBBVV():
     outflow_di['岭下站'] = {}
     outflow_di['岭下站']['streamflow'] = P_E_dic[name_huiliu]['streamflow'] + HBV.outflow_routing(outflow_di['河源站']['streamflow'],name_huiliu,month_list)
 
-    name_huiliu = '白盘珠、岭下-博罗'
+    name_huiliu = '白盆珠、岭下-博罗'
     outflow_di['博罗站'] = {}
     outflow_di['博罗站']['streamflow'] = P_E_dic[name_huiliu]['streamflow'] + HBV.outflow_routing(outflow_di['岭下站']['streamflow'],name_huiliu,outflow_di['白盆珠水库']['outflow'],month_list)
+
+    # 三大区间来水
+    outflow_di['枫树坝-河源片区区间来水'] = {}
+    outflow_di['枫树坝-河源片区区间来水']['streamflow'] = P_E_dic['龙川下游']['streamflow'] +  P_E_dic['龙川上游']['streamflow']
+
+    outflow_di['河源-岭下片区区间来水'] = {}
+    outflow_di['河源-岭下片区区间来水']['streamflow'] = P_E_dic['河源-岭下']['streamflow']
+
+    outflow_di['白盆珠、岭下-博罗片区区间来水'] = {}
+    outflow_di['白盆珠、岭下-博罗片区区间来水']['streamflow'] = P_E_dic['白盆珠、岭下-博罗']['streamflow']
 
     # 将字典中的所有NumPy数组转换为列表
     converted_dict = convert_numpy_arrays_to_lists(outflow_di)
@@ -269,3 +324,4 @@ def run_HHBBVV():
     with open(file_path, "w") as f:
         f.write(json_str)
     print('HBV输出完毕，结果保留在:', path_result + file_path)
+    os.chdir(path_now)

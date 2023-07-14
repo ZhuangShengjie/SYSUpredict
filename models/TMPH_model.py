@@ -101,7 +101,7 @@ def read_inputs(data_file):
             "evp": None,
             "tmp": None,
         },
-        "白盘珠、岭下-博罗": {
+        "白盆珠、岭下-博罗": {
             "evp": None,
             "tmp": None,
         },
@@ -123,7 +123,7 @@ def read_inputs(data_file):
     dd['新丰江集水区']['tmp'] = xfj - 273.15
     dd['白盆珠流域']['tmp'] = bpz - 273.15
     dd['河源-岭下']['tmp'] = hy_lx - 273.15
-    dd['白盘珠、岭下-博罗']['tmp'] = bpz_lx - 273.15
+    dd['白盆珠、岭下-博罗']['tmp'] = bpz_lx - 273.15
 
     return dd
 
