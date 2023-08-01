@@ -64,6 +64,10 @@ def ncep_cfs(date_dif, scale, date_l):
             path_m = f'{save_path_m}/{file}'
             if not os.path.exists(path_m):
                 download_check(req_url1, req_url2, path_m)
+            else:
+                file_size = os.path.getsize(path_m)
+                if file_size < 16 * 1024 * 1024:
+                    download_check(req_url1, req_url2, path_m)
             print(f'存储date: {date_dif} >>> 预测日期: {date_m} >>> 尺度: monthly')
             print(f'finish {file} download')
     elif scale == 'daily':
@@ -81,6 +85,10 @@ def ncep_cfs(date_dif, scale, date_l):
             path_d = f'{save_path_d}/{file}'
             if not os.path.exists(path_d):
                 download_check(req_url1, req_url2, path_d)
+            else:
+                file_size = os.path.getsize(path_d)
+                if file_size < 16 * 1024 * 1024:
+                    download_check(req_url1, req_url2, path_d)
             print(f'存储date: {date_dif} >>> 预测日期: {date_d} >>> 尺度: daily')
             print(f'finish {file} download')
     else:
@@ -108,6 +116,10 @@ def ncep_cfs_flx(date_dif, scale, date_l):
             path_m = f'{save_path_m}/{file}'
             if not os.path.exists(path_m):
                 download_check(req_url1, req_url2, path_m)
+            else:
+                file_size = os.path.getsize(path_m)
+                if file_size < 3 * 1024 * 1024:
+                    download_check(req_url1, req_url2, path_m)
             print(f'存储date: {date_dif} >>> 预测日期: {date_m} >>> 尺度: monthly >>> 变量: flxf')
             print(f'finish {file} download')
     elif scale == 'daily':
@@ -125,6 +137,10 @@ def ncep_cfs_flx(date_dif, scale, date_l):
             path_d = f'{save_path_d}/{file}'
             if not os.path.exists(path_d):
                 download_check(req_url1, req_url2, path_d)
+            else:
+                file_size = os.path.getsize(path_d)
+                if file_size < 3 * 1024 * 1024:
+                    download_check(req_url1, req_url2, path_d)
             print(f'存储date: {date_dif} >>> 预测日期: {date_d} >>> 尺度: daily >>> 变量: flxf')
             print(f'finish {file} download')
     else:
@@ -152,6 +168,10 @@ def date_predict_need(date_dif, scale, date_l):
             path = f'{save_path}/{file}'  # 可能需要修改，日期最好对上
             if not os.path.exists(path):
                 download_check(req_url1, req_url2, path)
+            else:
+                file_size = os.path.getsize(path)
+                if file_size < 16 * 1024 * 1024:
+                    download_check(req_url1, req_url2, path)
             print(f'存储date: {date_dif} >>> 日期: {date_m} >>> 尺度: {scale} >>> extra')
             print(f'finish {file} download')
 
@@ -171,6 +191,10 @@ def date_predict_need(date_dif, scale, date_l):
             path = f'{save_path}/{file}'
             if not os.path.exists(path):
                 download_check(req_url1, req_url2, path)
+            else:
+                file_size = os.path.getsize(path)
+                if file_size < 16 * 1024 * 1024:
+                    download_check(req_url1, req_url2, path)
             print(f'存储date: {date_dif} >>> 日期: {date_m} >>> 尺度: {scale} >>> extra')
             print(f'finish {file} download')
     else:
